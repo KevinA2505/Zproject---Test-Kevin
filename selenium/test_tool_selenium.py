@@ -1,4 +1,5 @@
 import os
+import tempfile
 import time
 
 import pytest
@@ -18,6 +19,17 @@ def driver():
     options.add_argument("--start-maximized")
     if os.getenv("ZP_HEADLESS") == "1":
         options.add_argument("--headless=new")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-sync")
+        options.add_argument("--no-first-run")
+        options.add_argument("--no-default-browser-check")
+        profile = os.path.join(
+            os.getenv("WORKSPACE", tempfile.gettempdir()),
+            f".edge-profile-{os.getpid()}",
+        )
+        options.add_argument(f"--user-data-dir={profile}")
 
     d = webdriver.Edge(options=options)
     d.implicitly_wait(2)

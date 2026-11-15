@@ -86,15 +86,19 @@ def unique_name(prefix="Tool Selenium"):
 def open_create(driver, name, description="Creada por Selenium", quantity=1):
     js_click(driver, (By.XPATH, "//button[contains(., 'Nueva herramienta')]"))
 
-    wait(driver).until(
+    name_input = wait(driver).until(
         EC.visibility_of_element_located(
             (By.XPATH, "//label[contains(., 'Nombre')]/following::input[1]")
         )
-    ).send_keys(name)
+    )
+    name_input.clear()
+    name_input.send_keys(name)
 
-    driver.find_element(
+    description_input = driver.find_element(
         By.XPATH, "//label[contains(., 'Descripción')]/following::input[1]"
-    ).send_keys(description)
+    )
+    description_input.clear()
+    description_input.send_keys(description)
 
     qty = driver.find_element(
         By.XPATH, "//label[contains(., 'Cantidad')]/following::input[1]"

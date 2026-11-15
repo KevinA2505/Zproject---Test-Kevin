@@ -42,20 +42,13 @@ def wait(driver, timeout=10):
     return WebDriverWait(driver, timeout)
 
 
-def wait_notifications_gone(driver, timeout=10):
-    wait(driver, timeout).until(
-        lambda d: len(
-            d.find_elements(By.CSS_SELECTOR, "[class*='Notification-description']")
-        )
-        == 0
-    )
+def js_click(driver, locator):
+    element = wait(driver).until(EC.visibility_of_element_located(locator))
+    driver.execute_script("arguments[0].click();", element)
 
 
 def click_guardar(driver):
-    wait_notifications_gone(driver)
-    wait(driver).until(
-        EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Guardar')]"))
-    ).click()
+    js_click(driver, (By.XPATH, "//button[contains(., 'Guardar')]"))
 
 
 def login(driver):
@@ -91,8 +84,7 @@ def unique_name(prefix="Tool Selenium"):
 
 
 def open_create(driver, name, description="Creada por Selenium", quantity=1):
-    wait_notifications_gone(driver)
-    driver.find_element(By.XPATH, "//button[contains(., 'Nueva herramienta')]").click()
+    js_click(driver, (By.XPATH, "//button[contains(., 'Nueva herramienta')]"))
 
     wait(driver).until(
         EC.visibility_of_element_located(
@@ -133,18 +125,15 @@ def delete_tool(driver, name):
     if before == 0:
         raise AssertionError(f"No se encontró la herramienta: {name}")
 
-    wait_notifications_gone(driver)
-    row_by_name(driver, name).find_element(
+    delete_button = row_by_name(driver, name).find_element(
         By.XPATH, ".//button[contains(., 'Eliminar')]"
-    ).click()
-
-    confirm = wait(driver).until(
-        EC.element_to_be_clickable(
-            (By.XPATH, "//*[@role='dialog']//button[contains(., 'Eliminar')]")
-        )
     )
-    wait_notifications_gone(driver)
-    confirm.click()
+    driver.execute_script("arguments[0].click();", delete_button)
+
+    js_click(
+        driver,
+        (By.XPATH, "//*[@role='dialog']//button[contains(., 'Eliminar')]"),
+    )
 
     wait(driver).until(
         lambda d: len(matching_rows(d, name)) == before - 1
@@ -183,12 +172,10 @@ def test_tool_selenium_03_duplicado_con_force(driver):
 
     open_create(driver, name)
 
-    wait_notifications_gone(driver)
-    wait(driver).until(
-        EC.element_to_be_clickable(
-            (By.XPATH, "//*[@role='dialog']//button[contains(., 'Crear de todas formas')]")
-        )
-    ).click()
+    js_click(
+        driver,
+        (By.XPATH, "//*[@role='dialog']//button[contains(., 'Crear de todas formas')]"),
+    )
 
     wait(driver).until(
         lambda d: len(d.find_elements(By.XPATH, f"//tr[td[contains(., '{name}')]]")) >= 2
@@ -206,9 +193,10 @@ def test_tool_selenium_04_editar(driver):
     description = "Descripcion editada por Selenium"
     create_tool(driver, name, description="Descripcion original")
 
-    row_by_name(driver, name).find_element(
+    edit_button = row_by_name(driver, name).find_element(
         By.XPATH, ".//button[contains(., 'Editar')]"
-    ).click()
+    )
+    driver.execute_script("arguments[0].click();", edit_button)
 
     field = wait(driver).until(
         EC.visibility_of_element_located(

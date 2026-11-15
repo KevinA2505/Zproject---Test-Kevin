@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 import time
 
@@ -17,6 +18,7 @@ PASSWORD = os.getenv("ZP_PASS", "")
 def driver():
     options = webdriver.EdgeOptions()
     options.add_argument("--start-maximized")
+    profile = None
     if os.getenv("ZP_HEADLESS") == "1":
         options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")
@@ -25,16 +27,15 @@ def driver():
         options.add_argument("--disable-sync")
         options.add_argument("--no-first-run")
         options.add_argument("--no-default-browser-check")
-        profile = os.path.join(
-            os.getenv("WORKSPACE", tempfile.gettempdir()),
-            f".edge-profile-{os.getpid()}",
-        )
+        profile = tempfile.mkdtemp(prefix="edge-profile-")
         options.add_argument(f"--user-data-dir={profile}")
 
     d = webdriver.Edge(options=options)
     d.implicitly_wait(2)
     yield d
     d.quit()
+    if profile:
+        shutil.rmtree(profile, ignore_errors=True)
 
 
 def wait(driver, timeout=10):

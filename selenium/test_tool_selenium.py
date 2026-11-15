@@ -42,6 +42,22 @@ def wait(driver, timeout=10):
     return WebDriverWait(driver, timeout)
 
 
+def wait_notifications_gone(driver, timeout=10):
+    wait(driver, timeout).until(
+        lambda d: len(
+            d.find_elements(By.CSS_SELECTOR, "[class*='Notification-description']")
+        )
+        == 0
+    )
+
+
+def click_guardar(driver):
+    wait_notifications_gone(driver)
+    wait(driver).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Guardar')]"))
+    ).click()
+
+
 def login(driver):
     if not PASSWORD:
         pytest.fail("Define ZP_PASS antes de ejecutar las pruebas")
@@ -75,6 +91,7 @@ def unique_name(prefix="Tool Selenium"):
 
 
 def open_create(driver, name, description="Creada por Selenium", quantity=1):
+    wait_notifications_gone(driver)
     driver.find_element(By.XPATH, "//button[contains(., 'Nueva herramienta')]").click()
 
     wait(driver).until(
@@ -93,7 +110,7 @@ def open_create(driver, name, description="Creada por Selenium", quantity=1):
     qty.clear()
     qty.send_keys(str(quantity))
 
-    driver.find_element(By.XPATH, "//button[contains(., 'Guardar')]").click()
+    click_guardar(driver)
 
 
 def create_tool(driver, name, description="Creada por Selenium", quantity=1):
@@ -116,15 +133,18 @@ def delete_tool(driver, name):
     if before == 0:
         raise AssertionError(f"No se encontró la herramienta: {name}")
 
+    wait_notifications_gone(driver)
     row_by_name(driver, name).find_element(
         By.XPATH, ".//button[contains(., 'Eliminar')]"
     ).click()
 
-    wait(driver).until(
-        EC.visibility_of_element_located(
+    confirm = wait(driver).until(
+        EC.element_to_be_clickable(
             (By.XPATH, "//*[@role='dialog']//button[contains(., 'Eliminar')]")
         )
-    ).click()
+    )
+    wait_notifications_gone(driver)
+    confirm.click()
 
     wait(driver).until(
         lambda d: len(matching_rows(d, name)) == before - 1
@@ -163,8 +183,9 @@ def test_tool_selenium_03_duplicado_con_force(driver):
 
     open_create(driver, name)
 
+    wait_notifications_gone(driver)
     wait(driver).until(
-        EC.visibility_of_element_located(
+        EC.element_to_be_clickable(
             (By.XPATH, "//*[@role='dialog']//button[contains(., 'Crear de todas formas')]")
         )
     ).click()
@@ -197,7 +218,7 @@ def test_tool_selenium_04_editar(driver):
     field.clear()
     field.send_keys(description)
 
-    driver.find_element(By.XPATH, "//button[contains(., 'Guardar')]").click()
+    click_guardar(driver)
 
     wait(driver).until(
         EC.visibility_of_element_located(

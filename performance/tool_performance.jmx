@@ -59,8 +59,8 @@
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
-  	${__P(zpUser,admin)},&#xd;
-	${__P(zpPass,)}&#xd;
+  	"username": "${__P(zpUser,admin)}",&#xd;
+	"password": "${__P(zpPass,)}"&#xd;
 }</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
